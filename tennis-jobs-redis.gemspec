@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |spec|
   spec.name          = "tennis-jobs-redis"
-  spec.version       = "0.1.0"
+  spec.version       = "0.4.0"
   spec.authors       = ["Nicolas ZERMATI"]
   spec.email         = ["nicoolas25@gmail.com"]
 
