@@ -14,6 +14,17 @@
 engines:
   rubocop:
     enabled: true
+    checks:
+      Rubocop/Style/EmptyLinesAroundClassBody:
+        enabled: false
+      Rubocop/Style/BracesAroundHashParameters:
+        enabled: fals
+      Rubocop/Style/StringLiterals:
+        enabled: false
+      Rubocop/Style/StringLiteralsInInterpolation:
+        enabled: false
+      Rubocop/Style/TrailingComma:
+        enabled: false
 
 # Engines can analyze files and report issues on them, but you can separately
 # decide which files will receive ratings based on those issues. This is

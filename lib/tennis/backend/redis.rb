@@ -33,7 +33,7 @@ module Tennis
         serialized_task && deserialize_task(serialized_task)
       end
 
-      def ack(task)
+      def ack(_)
         # Nothing to do here
       end
 
