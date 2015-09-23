@@ -25,12 +25,12 @@ module Tennis
         client_push(task)
       end
 
-      def receive(job_classes:, timeout: 1.0)
-        queues_cmd = queues(job_classes).keys.shuffle
-        queues_cmd << timeout.to_i if timeout
-        queue_name, serialized_task = client.brpop(*queues_cmd)
-        return nil unless queue_name
-        deserialize_task(serialized_task)
+      def receive(job_classes:, timeout: 1)
+        unordered_queues = queues(job_classes).shuffle
+        serialized_task = timeout && timeout >= 1 ?
+          client_pop_with_timeout(unordered_queues, timeout) :
+          client_pop(unordered_queues)
+        serialized_task && deserialize_task(serialized_task)
       end
 
       def ack(task)
@@ -54,6 +54,25 @@ module Tennis
       def client_push(task)
         serialized_task = serialize(task)
         client.lpush(queue_name(task.job.class), serialized_task)
+      end
+
+      def client_pop_with_timeout(unordered_queues, timeout)
+        unordered_queues << timeout.to_i
+        _, serialized_task = client.brpop(*unordered_queues)
+        serialized_task
+      end
+
+      def client_pop(unordered_queues)
+        script_lines = ["local element = nil"]
+        unordered_queues.each do |queue_name|
+          script_lines << <<-LUA
+            element = redis.call("RPOP", "#{@redis_namespace}:#{queue_name}")
+            if element ~= nil then
+              return element
+            end
+          LUA
+        end
+        client.eval(script_lines.join("\n"))
       end
 
       def serialize(task)
@@ -80,9 +99,9 @@ module Tennis
         @queues[job_classes] ||= job_classes.map { |klass| queue_name(klass) }
       end
 
-      def queue_name(job_class)
+      def queue_name(klass)
         @queue_names ||= {}
-        @queue_names[job_class] ||= job_class.name.gsub("::", "-").downcase
+        @queue_names[klass] ||= "queue:#{klass.name.gsub("::", "-").downcase}"
       end
 
     end

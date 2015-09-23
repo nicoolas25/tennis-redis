@@ -1,4 +1,10 @@
 language: ruby
 rvm:
-  - 2.2.2
+  - "2.2.3"
+branches:
+  only:
+    - master
+services:
+  - redis-server
+script: bundle exec rspec spec
 before_install: gem install bundler -v 1.10.5
